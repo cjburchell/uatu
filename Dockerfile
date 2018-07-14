@@ -5,7 +5,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main
 
 FROM scratch
 
-COPY --from=serverbuilder /go/src/github.com/cjburchell/yasls/main  /server
+COPY --from=serverbuilder /go/src/github.com/cjburchell/yasls/main  /server/main
 
 WORKDIR  /server
 
