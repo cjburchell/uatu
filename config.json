@@ -1,0 +1,22 @@
+[
+  {
+    "levels": [1,2,3,4],
+    "sources": [],
+    "pattern":"",
+    "destination": {
+      "type": "file",
+      "maxAge": 1,
+      "maxBackups": 20,
+      "maxSize": 100,
+      "filename": "/logs/server.log"
+    }
+  },
+  {
+    "levels": [1,2,3,4],
+    "sources": [],
+    "pattern":"",
+    "destination": {
+      "type": "console"
+    }
+  }
+]
