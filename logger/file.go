@@ -8,18 +8,13 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func CreateFile() Logger {
-	file := file{
+func CreateFileDestination(maxAge, maxBackups, maxSize int, filename string) Destination {
+	file := fileDestination{
 		logger: lumberjack.Logger{
-			MaxAge:     tools.GetEnvInt("LOG_FILE_MAX_AGE", 1), //days
-			MaxBackups: tools.GetEnvInt("LOG_FILE_MAX_BACKUPS", 20),
-			MaxSize:    tools.GetEnvInt("LOG_FILE_MAX_SIZE", 100) * 1024 * 1024., // megabytes
-			Filename:   tools.GetEnv("LOG_FILE_PATH", "/logs/server.log")},
-
-		loggerBase: loggerBase{
-			minLevel: tools.GetEnvInt("LOG_FILE_LEVEL", log.INFO.Severity),
-			enabled:  tools.GetEnvBool("LOG_FILE", false),
-		},
+			MaxAge:     maxAge, //days
+			MaxBackups: maxBackups,
+			MaxSize:    maxSize, // megabytes
+			Filename:   filename},
 	}
 
 	c := cron.New()
@@ -32,13 +27,10 @@ func CreateFile() Logger {
 	return file
 }
 
-type file struct {
-	loggerBase
+type fileDestination struct {
 	logger lumberjack.Logger
 }
 
-func (f file) PrintMessage(message log.LogMessage) {
-	if message.Level.Severity >= f.minLevel && f.enabled {
-		f.logger.Write([]byte(message.String() + "\n"))
-	}
+func (f fileDestination) PrintMessage(message log.LogMessage) {
+	f.logger.Write([]byte(message.String() + "\n"))
 }

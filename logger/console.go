@@ -6,21 +6,13 @@ import (
 	"github.com/cjburchell/yasls-client-go"
 )
 
-func CreateConsole() Logger {
-	return console{
-		loggerBase: loggerBase{
-			minLevel: tools.GetEnvInt("LOG_CONSOLE_LEVEL", log.INFO.Severity),
-			enabled:  tools.GetEnvBool("LOG_CONSOLE", false),
-		},
-	}
+func CreateConsoleDestination() Destination {
+	return consoleDestination{}
 }
 
-type console struct {
-	loggerBase
+type consoleDestination struct {
 }
 
-func (c console) PrintMessage(message log.LogMessage) {
-	if message.Level.Severity >= c.minLevel && c.enabled {
-		fmt.Println(message.String())
-	}
+func (consoleDestination) PrintMessage(message log.LogMessage) {
+	fmt.Println(message.String())
 }
