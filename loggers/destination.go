@@ -7,12 +7,8 @@ import (
 
 type Destination interface {
 	PrintMessage(message log.LogMessage)
-	Setup()
+	Setup() error
 	Stop()
 }
 
-var destinations = map[string]func(*json.RawMessage)Destination{
-	"console": createConsoleDestination,
-	"file": createFileDestination,
-	"slack": createSlackDestination,
-}
+var destinations map[string]func(*json.RawMessage)Destination

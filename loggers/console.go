@@ -20,5 +20,10 @@ func (consoleDestination) PrintMessage(message log.LogMessage) {
 func (consoleDestination) Stop()  {
 }
 
-func (consoleDestination) Setup()  {
+func (consoleDestination) Setup() error  {
+	return nil
+}
+
+func init() {
+	destinations["console"] =  createConsoleDestination
 }

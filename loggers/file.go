@@ -4,12 +4,10 @@ import (
 	"github.com/cjburchell/yasls-client-go"
 	"github.com/robfig/cron"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"fmt"
 	"encoding/json"
 )
 
 func createFileDestination(data *json.RawMessage) Destination {
-
 	var file fileDestination
 	if data == nil{
 		return &file
@@ -34,19 +32,13 @@ func (f fileDestination) PrintMessage(message log.LogMessage) {
 	}
 }
 
-func (f *fileDestination) Setup() {
+func (f *fileDestination) Setup() error {
 	f.logger = &lumberjack.Logger{
 		MaxAge:     f.MaxAge, //days
 		MaxBackups: f.MaxBackups,
 		MaxSize:    f.MaxSize, // megabytes
 		Filename:   f.Filename}
-
-	f.cron = cron.New()
-	f.cron.AddFunc("@midnight", func() {
-		fmt.Println("Resetting Logging file.")
-		f.logger.Rotate()
-	})
-	f.cron.Start()
+	return nil
 }
 
 func (f *fileDestination) Stop() {
@@ -54,4 +46,8 @@ func (f *fileDestination) Stop() {
 		f.cron.Stop()
 		f.cron = nil
 	}
+}
+
+func init() {
+	destinations["file"] =  createFileDestination
 }
