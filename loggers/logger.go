@@ -3,20 +3,13 @@ package loggers
 import (
 	"github.com/cjburchell/yasls-client-go"
 	"regexp"
-	"encoding/json"
-	"io/ioutil"
+	"github.com/cjburchell/yasls/config"
 )
 
 type Logger struct {
-	Id              string           `json:"id"`
-	Description     string           `json:"description, omitempty"`
-	Levels          []int            `json:"levels, omitempty"`
-	Sources         []string         `json:"sources, omitempty"`
-	Pattern         string           `json:"pattern, omitempty"`
-	DestinationType string           `json:"destination_type"`
-	DestConfig      *json.RawMessage `json:"destination, omitempty"`
-	re              *regexp.Regexp   `json:"-"`
-	Destination     Destination      `json:"-"`
+	config.Logger
+	re              *regexp.Regexp
+	Destination     Destination
 }
 
 func stringInSlice(a string, list []string) bool {
@@ -72,25 +65,22 @@ func (l Logger) Check(message log.LogMessage) bool {
 }
 
 func (l* Logger) UpdateDestination()  {
-	l.Destination = destinations[l.DestinationType](l.DestConfig)
+	l.Destination = destinations[l.DestinationType](l.DestinationConfig)
 	l.Destination.Setup()
 }
 
-func (l *Logger) UpdateDestinationConfig() {
-	data, _:= json.Marshal(l.Destination)
-	config := json.RawMessage(data)
-	l.DestConfig = &config
-}
-
-func Load(file string) ([]Logger, error) {
-	var loggers []Logger
-	fileData, err:= ioutil.ReadFile(file)
+func Load() ([]Logger, error)  {
+	result, err := config.GetLoggers()
 	if err != nil{
-		return loggers, err
+		return nil, err
 	}
 
-	err = json.Unmarshal(fileData, &loggers)
-	return loggers, err
-}
+	loggers := make([]Logger, len(result))
+	for index, item := range result {
+		loggers[index] = Logger{Logger: item }
+		loggers[index].UpdateDestination()
+	}
 
+	return loggers, nil
+}
 

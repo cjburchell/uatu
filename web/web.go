@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"time"
+	"github.com/cjburchell/yasls/web/routes"
+	"github.com/cjburchell/tools-go"
 )
 
 func handelStatus(w http.ResponseWriter, _ *http.Request) {
@@ -16,9 +18,13 @@ func handelStatus(w http.ResponseWriter, _ *http.Request) {
 }
 
 func StartHttp() {
+	username := tools.GetEnv("ADMIN_USER", "admin")
+	password := tools.GetEnv("ADMIN_PASSWORD", "admin")
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/@status", handelStatus).Methods("GET")
+	routes.SetupLoggerRoute(r, username, password)
 
 	srv := &http.Server{
 		Handler:      r,
