@@ -1,4 +1,4 @@
-package routes
+package logger
 
 import (
 	"github.com/gorilla/mux"
@@ -6,34 +6,17 @@ import (
 	"encoding/json"
 	"log"
 	"github.com/cjburchell/yasls/config"
-	"crypto/subtle"
 	"github.com/cjburchell/yasls/processor"
+	"github.com/cjburchell/yasls/web/middelware"
 )
 
-func SetupLoggerRoute(r *mux.Router, username string, password string) {
+func SetupRoute(r *mux.Router) {
 	loggerRoute := r.PathPrefix("/logger").Subrouter()
-	loggerRoute.HandleFunc("/", BasicAuth(handleGetLoggers, username, password)).Methods("GET")
-	loggerRoute.HandleFunc("/{Id}", BasicAuth(handleGetLogger,username, password)).Methods("GET")
-	loggerRoute.HandleFunc("/{Id}", BasicAuth(handleUpdateLogger, username, password)).Methods("POST")
-	loggerRoute.HandleFunc("/", BasicAuth(handleAddLogger, username, password)).Methods("PUT")
-	loggerRoute.HandleFunc("/{Id}", BasicAuth(handleDeleteLogger, username, password)).Methods("DELETE")
-}
-
-func BasicAuth(handler http.HandlerFunc, username string, password string) http.HandlerFunc{
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		user, pass, ok := r.BasicAuth()
-
-		if !ok || subtle.ConstantTimeCompare([]byte(user), []byte(username)) != 1 || subtle.ConstantTimeCompare([]byte(pass), []byte(password)) != 1 {
-			w.Header().Set("WWW-Authenticate", `Basic realm="Please enter your username and password for this site"`)
-			w.WriteHeader(401)
-			w.Write([]byte("Unauthorised.\n"))
-			return
-		}
-
-		handler(w, r)
-	}
-
+	loggerRoute.Handle("/", middelware.ValidateJWT(handleGetLoggers)).Methods("GET")
+	loggerRoute.Handle("/{Id}", middelware.ValidateJWT(handleGetLogger)).Methods("GET")
+	loggerRoute.Handle("/{Id}", middelware.ValidateJWT(handleUpdateLogger)).Methods("POST")
+	loggerRoute.Handle("/", middelware.ValidateJWT(handleAddLogger)).Methods("PUT")
+	loggerRoute.Handle("/{Id}", middelware.ValidateJWT(handleDeleteLogger)).Methods("DELETE")
 }
 
 
