@@ -1,15 +1,16 @@
 package loggers
 
 import (
+	"encoding/json"
+
 	"github.com/cjburchell/yasls-client-go"
 	"github.com/robfig/cron"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"encoding/json"
 )
 
 func createFileDestination(data *json.RawMessage) Destination {
 	var file fileDestination
-	if data == nil{
+	if data == nil {
 		return &file
 	}
 
@@ -18,16 +19,16 @@ func createFileDestination(data *json.RawMessage) Destination {
 }
 
 type fileDestination struct {
-	MaxAge     int                `json:"max_age"`
-	MaxBackups int                `json:"max_backups"`
-	MaxSize    int                `json:"max_size"`
-	Filename   string             `json:"filename"`
-	logger     *lumberjack.Logger `json:"-"`
-	cron       *cron.Cron         `json:"-"`
+	MaxAge     int    `json:"max_age"`
+	MaxBackups int    `json:"max_backups"`
+	MaxSize    int    `json:"max_size"`
+	Filename   string `json:"filename"`
+	logger     *lumberjack.Logger
+	cron       *cron.Cron
 }
 
 func (f fileDestination) PrintMessage(message log.LogMessage) {
-	if f.logger != nil{
+	if f.logger != nil {
 		f.logger.Write([]byte(message.String() + "\n"))
 	}
 }
@@ -49,5 +50,5 @@ func (f *fileDestination) Stop() {
 }
 
 func init() {
-	destinations["file"] =  createFileDestination
+	destinations["file"] = createFileDestination
 }

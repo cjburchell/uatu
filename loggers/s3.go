@@ -2,16 +2,17 @@ package loggers
 
 import (
 	"encoding/json"
-	"github.com/cjburchell/yasls-client-go"
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/cjburchell/yasls-client-go"
 	"github.com/robfig/cron"
-	"fmt"
 )
 
 func createS3Destination(data *json.RawMessage) Destination {
 	var destination s3Destination
-	if data == nil{
+	if data == nil {
 		return &destination
 	}
 
@@ -27,12 +28,13 @@ type s3Destination struct {
 	MaxSize    int    `json:"max_size"`
 	Filename   string `json:"filename"`
 	session    *session.Session
+	cron       *cron.Cron
 }
 
 func (s s3Destination) PrintMessage(message log.LogMessage) {
 }
 
-func (s3Destination) Stop()  {
+func (s3Destination) Stop() {
 }
 
 func (s *s3Destination) Setup() error {
@@ -42,16 +44,15 @@ func (s *s3Destination) Setup() error {
 		return err
 	}
 
-	f.cron = cron.New()
-	f.cron.AddFunc("@midnight", func() {
+	s.cron = cron.New()
+	s.cron.AddFunc("@midnight", func() {
 		fmt.Println("Resetting Logging file.")
-		f.logger.Rotate()
 	})
-	f.cron.Start()
+	s.cron.Start()
 
 	return nil
 }
 
 func init() {
-	destinations["s3"] =  createS3Destination
+	destinations["s3"] = createS3Destination
 }

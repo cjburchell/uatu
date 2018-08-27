@@ -1,15 +1,17 @@
 package loggers
 
 import (
-	"github.com/cjburchell/yasls-client-go"
 	"regexp"
+
+	"github.com/cjburchell/yasls-client-go"
 	"github.com/cjburchell/yasls/config"
 )
 
+// Logger item
 type Logger struct {
 	config.Logger
-	re              *regexp.Regexp
-	Destination     Destination
+	re          *regexp.Regexp
+	Destination Destination
 }
 
 func stringInSlice(a string, list []string) bool {
@@ -30,6 +32,7 @@ func intInSlice(a int, list []int) bool {
 	return false
 }
 
+// SetMaxLevel Sets the max level for a logger
 func (l *Logger) SetMaxLevel(maxLevel int) {
 	l.Levels = []int{}
 	for i := 0; i <= maxLevel; i++ {
@@ -37,6 +40,7 @@ func (l *Logger) SetMaxLevel(maxLevel int) {
 	}
 }
 
+// Check checks to see if the message should be logged
 func (l Logger) Check(message log.LogMessage) bool {
 
 	if len(l.Levels) != 0 {
@@ -64,23 +68,24 @@ func (l Logger) Check(message log.LogMessage) bool {
 	return true
 }
 
-func (l* Logger) UpdateDestination()  {
+// UpdateDestination updates the destination
+func (l *Logger) UpdateDestination() {
 	l.Destination = destinations[l.DestinationType](l.DestinationConfig)
 	l.Destination.Setup()
 }
 
-func Load() ([]Logger, error)  {
+// Load the log file
+func Load() ([]Logger, error) {
 	result, err := config.GetLoggers()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	loggers := make([]Logger, len(result))
 	for index, item := range result {
-		loggers[index] = Logger{Logger: item }
+		loggers[index] = Logger{Logger: item}
 		loggers[index].UpdateDestination()
 	}
 
 	return loggers, nil
 }
-
