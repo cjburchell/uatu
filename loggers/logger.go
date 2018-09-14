@@ -57,7 +57,11 @@ func (l Logger) Check(message log.LogMessage) bool {
 
 	if l.Pattern != "" {
 		if l.re == nil {
-			l.re, _ = regexp.Compile(l.Pattern)
+			var err error
+			l.re, err = regexp.Compile(l.Pattern)
+			if err != nil {
+				l.Pattern = ""
+			}
 		}
 
 		if !l.re.MatchString(message.Text) {
@@ -69,9 +73,14 @@ func (l Logger) Check(message log.LogMessage) bool {
 }
 
 // UpdateDestination updates the destination
-func (l *Logger) UpdateDestination() {
-	l.Destination = destinations[l.DestinationType](l.DestinationConfig)
-	l.Destination.Setup()
+func (l *Logger) UpdateDestination() error {
+	var err error
+	l.Destination, err = destinations[l.DestinationType](l.DestinationConfig)
+	if err != nil {
+		return err
+	}
+
+	return l.Destination.Setup()
 }
 
 // Load the log file
@@ -84,7 +93,10 @@ func Load() ([]Logger, error) {
 	loggers := make([]Logger, len(result))
 	for index, item := range result {
 		loggers[index] = Logger{Logger: item}
-		loggers[index].UpdateDestination()
+		err = loggers[index].UpdateDestination()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return loggers, nil

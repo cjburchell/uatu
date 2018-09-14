@@ -8,14 +8,14 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func createFileDestination(data *json.RawMessage) Destination {
+func createFileDestination(data *json.RawMessage) (Destination, error) {
 	var file fileDestination
 	if data == nil {
-		return &file
+		return &file, nil
 	}
 
-	json.Unmarshal(*data, &file)
-	return &file
+	err := json.Unmarshal(*data, &file)
+	return &file, err
 }
 
 type fileDestination struct {
@@ -27,10 +27,13 @@ type fileDestination struct {
 	cron       *cron.Cron
 }
 
-func (f fileDestination) PrintMessage(message log.LogMessage) {
+func (f fileDestination) PrintMessage(message log.LogMessage) error {
 	if f.logger != nil {
-		f.logger.Write([]byte(message.String() + "\n"))
+		_, err := f.logger.Write([]byte(message.String() + "\n"))
+		return err
 	}
+
+	return nil
 }
 
 func (f *fileDestination) Setup() error {

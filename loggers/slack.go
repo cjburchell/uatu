@@ -1,45 +1,47 @@
 package loggers
 
 import (
-	"github.com/cjburchell/yasls-client-go"
 	"encoding/json"
+
+	"github.com/cjburchell/yasls-client-go"
 	"github.com/nlopes/slack"
 )
 
-func createSlackDestination(data *json.RawMessage) Destination {
+func createSlackDestination(data *json.RawMessage) (Destination, error) {
 	var destination slackDestination
-	if data == nil{
-		return &destination
+	if data == nil {
+		return &destination, nil
 	}
 
-	json.Unmarshal(*data, &destination)
-	return &destination
+	err := json.Unmarshal(*data, &destination)
+	return &destination, err
 }
 
 type slackDestination struct {
-	Token string `json:"token"`
+	Token   string `json:"token"`
 	Channel string `json:"channel"`
-	client *slack.Client
+	client  *slack.Client
 }
 
-func (s slackDestination) PrintMessage(message log.LogMessage) {
-	if s.client == nil{
-		return
+func (s slackDestination) PrintMessage(message log.LogMessage) error {
+	if s.client == nil {
+		return nil
 	}
 
 	params := slack.PostMessageParameters{}
-	s.client.PostMessage(s.Channel ,message.String(), params)
+	_, _, err := s.client.PostMessage(s.Channel, message.String(), params)
+	return err
 }
 
-func (s *slackDestination) Stop()  {
+func (s *slackDestination) Stop() {
 	s.client = nil
 }
 
-func (s *slackDestination) Setup() error  {
+func (s *slackDestination) Setup() error {
 	s.client = slack.New(s.Token)
 	return nil
 }
 
 func init() {
-	destinations["slack"] =  createSlackDestination
+	destinations["slack"] = createSlackDestination
 }

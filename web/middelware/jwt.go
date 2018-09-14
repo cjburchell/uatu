@@ -1,11 +1,13 @@
 package middelware
 
 import (
-	"github.com/dgrijalva/jwt-go"
-	"github.com/auth0/go-jwt-middleware"
 	"net/http"
+
+	"github.com/auth0/go-jwt-middleware"
+	"github.com/dgrijalva/jwt-go"
 )
 
+// MySigningKey secret key for JWT tokens
 var MySigningKey = "What is the answer"
 
 var middleware = jwtmiddleware.New(jwtmiddleware.Options{
@@ -15,6 +17,7 @@ var middleware = jwtmiddleware.New(jwtmiddleware.Options{
 	SigningMethod: jwt.SigningMethodHS256,
 })
 
-func ValidateJWT(handlerFunc http.HandlerFunc) http.Handler{
+// ValidateJWT token middleware
+func ValidateJWT(handlerFunc http.HandlerFunc) http.Handler {
 	return middleware.Handler(http.Handler(handlerFunc))
 }

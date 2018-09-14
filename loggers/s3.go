@@ -10,14 +10,14 @@ import (
 	"github.com/robfig/cron"
 )
 
-func createS3Destination(data *json.RawMessage) Destination {
+func createS3Destination(data *json.RawMessage) (Destination, error) {
 	var destination s3Destination
 	if data == nil {
-		return &destination
+		return &destination, nil
 	}
 
-	json.Unmarshal(*data, &destination)
-	return &destination
+	err := json.Unmarshal(*data, &destination)
+	return &destination, err
 }
 
 type s3Destination struct {
@@ -31,7 +31,8 @@ type s3Destination struct {
 	cron       *cron.Cron
 }
 
-func (s s3Destination) PrintMessage(message log.LogMessage) {
+func (s s3Destination) PrintMessage(message log.LogMessage) error {
+	return nil
 }
 
 func (s3Destination) Stop() {
@@ -45,9 +46,14 @@ func (s *s3Destination) Setup() error {
 	}
 
 	s.cron = cron.New()
-	s.cron.AddFunc("@midnight", func() {
+	err = s.cron.AddFunc("@midnight", func() {
 		fmt.Println("Resetting Logging file.")
 	})
+
+	if err != nil {
+		return err
+	}
+
 	s.cron.Start()
 
 	return nil

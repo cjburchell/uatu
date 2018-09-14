@@ -1,19 +1,21 @@
 package login
 
 import (
-	"net/http"
 	"crypto/subtle"
-	"github.com/gorilla/mux"
-	"github.com/dgrijalva/jwt-go"
+	"net/http"
 	"time"
+
 	"github.com/cjburchell/yasls/web/middelware"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 )
 
-func SetupRoutes(r *mux.Router, username string, password string)  {
+// SetupRoutes for the login
+func SetupRoutes(r *mux.Router, username string, password string) {
 	r.HandleFunc("/login", basicAuthLogin(username, password)).Methods("POST")
 }
 
-func basicAuthLogin(username string, password string) http.HandlerFunc{
+func basicAuthLogin(username string, password string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, pass, ok := r.BasicAuth()
 
