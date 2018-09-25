@@ -1,22 +1,78 @@
-node {
-     stage('Clone repository') {
-         /* Let's make sure we have the repository cloned to our workspace */
-         checkout scm
-     }
-
-    String dockerImage = "cjburchell/yasls"
-    String branchName = env.BRANCH_NAME
-    if(branchName == "master"){
-        branchName = 'latest'
+pipeline{
+    agent any
+    environment {
+            DOCKER_IMAGE = "cjburchell/yasls"
+            DOCKER_TAG = "${env.BRANCH_NAME}"
     }
 
-    stage('Build image') {
-        docker.build("${dockerImage}").tag("${branchName}")
-    }
+    stages{
+        stage('Clone repository') {
+            steps {
+                script{
+                    slackSend color: "good", message: "Job: ${env.JOB_NAME} with build number ${env.BUILD_NUMBER} started"
+                }
+             /* Let's make sure we have the repository cloned to our workspace */
+             checkout scm
+             }
+         }
 
-    stage ('Push image') {
-        docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
-            docker.image("${dockerImage}").push("${branchName}")
+        stage('Build image') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE}").tag("${DOCKER_TAG}")
+                }
+            }
         }
+
+        stage('Build latest image'){
+                    when {branch 'master'}
+                    steps {
+                        script {
+                                docker.build("${DOCKER_IMAGE}").tag("latest")
+                        }
+                    }
+        }
+
+        stage ('Push image') {
+            steps {
+                script {
+                    docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
+                                 docker.image("${DOCKER_IMAGE}").push("${DOCKER_TAG}")
+                               }
+                    }
+                }
+        }
+
+        stage ('Push latest image') {
+        when {branch 'master'}
+                    steps {
+                        script {
+                            echo DOCKER_TAG
+                            docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
+                                         docker.image("${DOCKER_IMAGE}").push("latest")
+                                       }
+                            }
+                        }
+                }
     }
+
+    post {
+                always {
+                      script{
+                          if ( currentBuild.currentResult == "SUCCESS" ) {
+                            slackSend color: "good", message: "Job: ${env.JOB_NAME} with build number ${env.BUILD_NUMBER} was successful"
+                          }
+                          else if( currentBuild.currentResult == "FAILURE" ) {
+                            slackSend color: "danger", message: "Job: ${env.JOB_NAME} with build number ${env.BUILD_NUMBER} was failed"
+                          }
+                          else if( currentBuild.currentResult == "UNSTABLE" ) {
+                            slackSend color: "warning", message: "Job: ${env.JOB_NAME} with build number ${env.BUILD_NUMBER} was unstable"
+                          }
+                          else {
+                            slackSend color: "danger", message: "Job: ${env.JOB_NAME} with build number ${env.BUILD_NUMBER} its result (${currentBuild.currentResult}) was unclear"
+                          }
+                      }
+                }
+            }
+
 }
