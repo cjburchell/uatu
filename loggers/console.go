@@ -14,7 +14,7 @@ func createConsoleDestination(_ *json.RawMessage) (Destination, error) {
 type consoleDestination struct {
 }
 
-func (consoleDestination) PrintMessage(message log.LogMessage) error {
+func (consoleDestination) PrintMessage(message log.Message) error {
 	_, err := fmt.Println(message.String())
 	return err
 }

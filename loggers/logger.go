@@ -41,7 +41,7 @@ func (l *Logger) SetMaxLevel(maxLevel int) {
 }
 
 // Check checks to see if the message should be logged
-func (l Logger) Check(message log.LogMessage) bool {
+func (l Logger) Check(message log.Message) bool {
 
 	if len(l.Levels) != 0 {
 		if !intInSlice(message.Level.Severity, l.Levels) {

@@ -8,7 +8,7 @@ import (
 
 // Destination for a logger
 type Destination interface {
-	PrintMessage(message log.LogMessage) error
+	PrintMessage(message log.Message) error
 	Setup() error
 	Stop()
 }

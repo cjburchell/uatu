@@ -3,6 +3,7 @@ package loggers
 import (
 	"encoding/json"
 
+	"github.com/cjburchell/tools-go"
 	"github.com/cjburchell/yasls-client-go"
 	"github.com/nlopes/slack"
 )
@@ -18,12 +19,11 @@ func createSlackDestination(data *json.RawMessage) (Destination, error) {
 }
 
 type slackDestination struct {
-	Token   string `json:"token"`
 	Channel string `json:"channel"`
 	client  *slack.Client
 }
 
-func (s slackDestination) PrintMessage(message log.LogMessage) error {
+func (s slackDestination) PrintMessage(message log.Message) error {
 	if s.client == nil {
 		return nil
 	}
@@ -38,7 +38,8 @@ func (s *slackDestination) Stop() {
 }
 
 func (s *slackDestination) Setup() error {
-	s.client = slack.New(s.Token)
+	token := tools.GetEnv("SLACK_TOKEN", "")
+	s.client = slack.New(token)
 	return nil
 }
 

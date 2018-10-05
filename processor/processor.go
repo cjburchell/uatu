@@ -43,7 +43,7 @@ func Start() {
 			r.HandleFunc("/log", func(w http.ResponseWriter, r *http.Request) {
 
 				decoder := json.NewDecoder(r.Body)
-				var logMessage log.LogMessage
+				var logMessage log.Message
 				if err := decoder.Decode(&logMessage); err != nil {
 					fmt.Println("Unmarshal Failed " + err.Error())
 					w.WriteHeader(http.StatusBadRequest)
@@ -87,48 +87,14 @@ func Load() error {
 	}
 
 	if len(processors) == 0 {
-		maxAge := tools.GetEnvInt("LOG_FILE_MAX_AGE", 1) //days
-		maxBackups := tools.GetEnvInt("LOG_FILE_MAX_BACKUPS", 20)
-		maxSize := tools.GetEnvInt("LOG_FILE_MAX_SIZE", 100) * 1024 * 1024. // megabytes
-		filename := tools.GetEnv("LOG_FILE_PATH", "/logs/server.log")
-
-		minLevelFile := tools.GetEnvInt("LOG_FILE_LEVEL", log.INFO.Severity)
-		enabledFile := tools.GetEnvBool("LOG_FILE", false)
-
-		if enabledFile {
-			data, _ := json.Marshal(struct {
-				MaxAge     int    `json:"max_age"`
-				MaxBackups int    `json:"max_backups"`
-				MaxSize    int    `json:"max_size"`
-				Filename   string `json:"filename"`
-			}{
-				MaxAge:     maxAge,
-				MaxBackups: maxBackups,
-				MaxSize:    maxSize,
-				Filename:   filename,
-			})
-			destinationConfig := json.RawMessage(data)
-			consoleLogger := loggers.Logger{Logger: config.Logger{DestinationType: "file", DestinationConfig: &destinationConfig}}
-			consoleLogger.SetMaxLevel(minLevelFile)
-			err = consoleLogger.UpdateDestination()
-			if err != nil {
-				return err
-			}
-			processors = append(processors, consoleLogger)
+		consoleLogger := loggers.Logger{Logger: config.Logger{DestinationType: "console"}}
+		consoleLogger.SetMaxLevel(log.INFO.Severity)
+		err = consoleLogger.UpdateDestination()
+		if err != nil {
+			return err
 		}
 
-		minLevelConsole := tools.GetEnvInt("LOG_CONSOLE_LEVEL", log.INFO.Severity)
-		enabledConsole := tools.GetEnvBool("LOG_CONSOLE", false)
-		if enabledConsole {
-			consoleLogger := loggers.Logger{Logger: config.Logger{DestinationType: "console"}}
-			consoleLogger.SetMaxLevel(minLevelConsole)
-			err = consoleLogger.UpdateDestination()
-			if err != nil {
-				return err
-			}
-
-			processors = append(processors, consoleLogger)
-		}
+		processors = append(processors, consoleLogger)
 	}
 
 	return nil
@@ -136,7 +102,7 @@ func Load() error {
 
 var natsConn *nats.Conn
 
-func handleMessage(logMessage log.LogMessage) error {
+func handleMessage(logMessage log.Message) error {
 	for _, l := range processors {
 		if l.Check(logMessage) {
 			if err := l.Destination.PrintMessage(logMessage); err != nil {
@@ -157,7 +123,7 @@ func setupNats(natsURL string) (*nats.Conn, error) {
 
 	_, err = natsConn.Subscribe("logs", func(msg *nats.Msg) {
 		data := msg.Data
-		logMessage := log.LogMessage{}
+		logMessage := log.Message{}
 		if err = json.Unmarshal(data, &logMessage); err != nil {
 			fmt.Printf("Bad Message: %s\n", err)
 			return

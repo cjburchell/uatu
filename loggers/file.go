@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/cjburchell/yasls-client-go"
-	"github.com/robfig/cron"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -24,10 +23,9 @@ type fileDestination struct {
 	MaxSize    int    `json:"max_size"`
 	Filename   string `json:"filename"`
 	logger     *lumberjack.Logger
-	cron       *cron.Cron
 }
 
-func (f fileDestination) PrintMessage(message log.LogMessage) error {
+func (f fileDestination) PrintMessage(message log.Message) error {
 	if f.logger != nil {
 		_, err := f.logger.Write([]byte(message.String() + "\n"))
 		return err
@@ -46,10 +44,6 @@ func (f *fileDestination) Setup() error {
 }
 
 func (f *fileDestination) Stop() {
-	if f.cron != nil {
-		f.cron.Stop()
-		f.cron = nil
-	}
 }
 
 func init() {
