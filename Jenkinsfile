@@ -18,29 +18,38 @@ pipeline{
          }
 
          stage('Lint') {
-                     steps {
-                         script{
-                         docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
-                                 docker.image('cjburchell/goci:latest').inside("-v ${env.WORKSPACE}:${PROJECT_PATH}"){
-                                     sh """cd ${PROJECT_PATH} && go tool vet ."""
-                                     sh """cd ${PROJECT_PATH} && golint ."""
-                                 }
-                             }
-                         }
-                     }
-                 }
+                             steps {
+                                 script{
+                                 docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
+                                         docker.image('cjburchell/goci:latest').inside("-v ${env.WORKSPACE}:${PROJECT_PATH}"){
 
-         stage('Tests') {
-                     steps {
-                         script{
-                             docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
-                                 docker.image('cjburchell/goci:latest').inside("-v ${env.WORKSPACE}:${PROJECT_PATH}"){
-                                     sh """cd ${PROJECT_PATH} && go test ."""
+                                             sh """cd ${PROJECT_PATH} && go list ./... | grep -v /vendor/ > projectPaths"""
+                                             def paths = sh returnStdout: true, script:"""awk '{printf "/go/src/%s ",\$0} END {print ""}' projectPaths"""
+                                             echo paths
+
+                                             sh """cd ${PROJECT_PATH} && go tool vet ${paths}"""
+                                             sh """cd ${PROJECT_PATH} && golint ${paths}"""
+                                         }
+                                     }
                                  }
                              }
                          }
-                     }
-                 }
+
+                 stage('Tests') {
+                             steps {
+                                 script{
+                                     docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
+                                         docker.image('cjburchell/goci:latest').inside("-v ${env.WORKSPACE}:${PROJECT_PATH}"){
+                                             sh """cd ${PROJECT_PATH} && go list ./... | grep -v /vendor/ > projectPaths"""
+                                             def paths = sh returnStdout: true, script:"""awk '{printf "/go/src/%s ",\$0} END {print ""}' projectPaths"""
+                                             echo paths
+
+                                             sh """cd ${PROJECT_PATH} && go test ${paths}"""
+                                         }
+                                     }
+                                 }
+                             }
+                         }
 
         stage('Build image') {
             steps {
