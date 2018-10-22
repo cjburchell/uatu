@@ -3,6 +3,7 @@ pipeline{
     environment {
             DOCKER_IMAGE = "cjburchell/yasls"
             DOCKER_TAG = "${env.BRANCH_NAME}"
+            PROJECT_PATH = "/go/src/github.com/cjburchell/yasls"
     }
 
     stages{
@@ -15,6 +16,31 @@ pipeline{
              checkout scm
              }
          }
+
+         stage('Lint') {
+                     steps {
+                         script{
+                         docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
+                                 docker.image('cjburchell/goci:latest').inside("-v ${env.WORKSPACE}:${PROJECT_PATH}"){
+                                     sh """cd ${PROJECT_PATH} && go tool vet ."""
+                                     sh """cd ${PROJECT_PATH} && golint ."""
+                                 }
+                             }
+                         }
+                     }
+                 }
+
+         stage('Tests') {
+                     steps {
+                         script{
+                             docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
+                                 docker.image('cjburchell/goci:latest').inside("-v ${env.WORKSPACE}:${PROJECT_PATH}"){
+                                     sh """cd ${PROJECT_PATH} && go test ."""
+                                 }
+                             }
+                         }
+                     }
+                 }
 
         stage('Build image') {
             steps {
