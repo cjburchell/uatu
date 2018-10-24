@@ -3,6 +3,7 @@ pipeline{
     environment {
             DOCKER_IMAGE = "cjburchell/yasls"
             DOCKER_TAG = "${env.BRANCH_NAME}"
+            PROJECT_PATH = "/go/src/github.com/cjburchell/yasls"
     }
 
     stages{
@@ -15,6 +16,46 @@ pipeline{
              checkout scm
              }
          }
+
+         stage('Lint') {
+                     steps {
+                         script{
+                         docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
+                                 docker.image('cjburchell/goci:latest').inside("-v ${env.WORKSPACE}:${PROJECT_PATH}"){
+                                     sh """cd ${PROJECT_PATH} && go list ./... | grep -v /vendor/ > projectPaths"""
+                                     def paths = sh returnStdout: true, script:"""awk '{printf "/go/src/%s ",\$0} END {print ""}' projectPaths"""
+
+                                     sh """go tool vet ${paths}"""
+                                     sh """golint ${paths}"""
+
+                                     warnings canComputeNew: true, canResolveRelativePaths: true, categoriesPattern: '', consoleParsers: [[parserName: 'Go Vet'], [parserName: 'Go Lint']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''
+                                 }
+                             }
+                         }
+                     }
+                 }
+
+                 /*stage('Tests') {
+                     steps {
+                         script{
+                             docker.withRegistry('https://390282485276.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:redpoint-ecr-credentials') {
+                                 docker.image('cjburchell/goci:latest').inside("-v ${env.WORKSPACE}:${PROJECT_PATH}"){
+                                     sh """cd ${PROJECT_PATH} && go list ./... | grep -v /vendor/ > projectPaths"""
+                                     def paths = sh returnStdout: true, script:"""awk '{printf "/go/src/%s ",\$0} END {print ""}' projectPaths"""
+
+                                     def testResults = sh returnStdout: true, script:"""go test -v ${paths}"""
+                                     writeFile file: 'test_results.txt', text: testResults
+                                     sh """go2xunit -input test_results.txt > tests.xml"""
+                                     sh """cd ${PROJECT_PATH} && ls"""
+
+                                     archiveArtifacts 'test_results.txt'
+                                     archiveArtifacts 'tests.xml'
+                                     junit allowEmptyResults: true, testResults: 'tests.xml'
+                                 }
+                             }
+                         }
+                     }
+                 }*/
 
         stage('Build image') {
             steps {
