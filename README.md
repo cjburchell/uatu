@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/cjburchell/yasls)](https://goreportcard.com/report/github.com/cjburchell/yasls)
+[![Go Report Card](https://goreportcard.com/badge/github.com/cjburchell/uatu)](https://goreportcard.com/report/github.com/cjburchell/uatu)
 
-# yasls
-Yet another simple logging server
+# Uatu
+simple logging server
