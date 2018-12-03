@@ -5,17 +5,17 @@ import (
 	"log"
 	"sync"
 
+	"github.com/cjburchell/tools-go/env"
+
 	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/processor"
 	"github.com/cjburchell/uatu/web"
-
-	"github.com/cjburchell/tools-go"
 )
 
 func main() {
 	wg := &sync.WaitGroup{}
 
-	configFile := tools.GetEnv("CONFIG_FILE", "/config.json")
+	configFile := env.Get("CONFIG_FILE", "/config.json")
 
 	err := config.Setup(configFile)
 	if err != nil {

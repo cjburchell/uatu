@@ -3,8 +3,9 @@ package loggers
 import (
 	"encoding/json"
 
-	"github.com/cjburchell/tools-go"
-	"github.com/cjburchell/yasls-client-go"
+	"github.com/cjburchell/tools-go/env"
+
+	"github.com/cjburchell/go-uatu"
 	"github.com/nlopes/slack"
 )
 
@@ -38,7 +39,7 @@ func (s *slackDestination) Stop() {
 }
 
 func (s *slackDestination) Setup() error {
-	token := tools.GetEnv("SLACK_TOKEN", "")
+	token := env.Get("SLACK_TOKEN", "")
 	s.client = slack.New(token)
 	return nil
 }

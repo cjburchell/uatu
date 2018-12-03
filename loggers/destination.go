@@ -3,7 +3,7 @@ package loggers
 import (
 	"encoding/json"
 
-	"github.com/cjburchell/yasls-client-go"
+	"github.com/cjburchell/go-uatu"
 )
 
 // Destination for a logger

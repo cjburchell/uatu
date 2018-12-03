@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cjburchell/yasls-client-go"
+	"github.com/cjburchell/go-uatu"
 )
 
 func createConsoleDestination(_ *json.RawMessage) (Destination, error) {

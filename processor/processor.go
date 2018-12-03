@@ -8,10 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cjburchell/tools-go"
+	"github.com/cjburchell/tools-go/env"
+
+	"github.com/cjburchell/go-uatu"
 	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/loggers"
-	"github.com/cjburchell/yasls-client-go"
 	"github.com/gorilla/mux"
 	"github.com/nats-io/go-nats"
 )
@@ -23,9 +24,9 @@ func Start() {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	useNats := tools.GetEnvBool("USE_NATS", true)
+	useNats := env.GetBool("USE_NATS", true)
 	if useNats {
-		natsURL := tools.GetEnv("NATS_URL", "tcp://nats:4222")
+		natsURL := env.Get("NATS_URL", "tcp://nats:4222")
 		fmt.Printf("Connecting to nats: %s\n", natsURL)
 		var err error
 		natsConn, err = setupNats(natsURL)
@@ -34,10 +35,10 @@ func Start() {
 		}
 	}
 
-	useRest := tools.GetEnvBool("USE_REST", false)
+	useRest := env.GetBool("USE_REST", false)
 	if useRest {
 		go func() {
-			port := tools.GetEnvInt("REST_PORT", 8081)
+			port := env.GetInt("REST_PORT", 8081)
 
 			r := mux.NewRouter()
 			r.HandleFunc("/log", func(w http.ResponseWriter, r *http.Request) {
