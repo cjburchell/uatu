@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/cjburchell/tools-go"
+	"github.com/cjburchell/uatu/config"
+	"github.com/cjburchell/uatu/loggers"
 	"github.com/cjburchell/yasls-client-go"
-	"github.com/cjburchell/yasls/config"
-	"github.com/cjburchell/yasls/loggers"
 	"github.com/gorilla/mux"
 	"github.com/nats-io/go-nats"
 )

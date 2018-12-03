@@ -3,8 +3,8 @@ package loggers
 import (
 	"regexp"
 
+	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/yasls-client-go"
-	"github.com/cjburchell/yasls/config"
 )
 
 // Logger item

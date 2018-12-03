@@ -1,9 +1,9 @@
 pipeline{
     agent any
     environment {
-            DOCKER_IMAGE = "cjburchell/yasls"
+            DOCKER_IMAGE = "cjburchell/uatu"
             DOCKER_TAG = "${env.BRANCH_NAME}"
-            PROJECT_PATH = "/go/src/github.com/cjburchell/yasls"
+            PROJECT_PATH = "/go/src/github.com/cjburchell/uatu"
     }
 
     stages{

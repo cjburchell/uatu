@@ -19,7 +19,7 @@ services:
     - REST_PORT=8081
     volumes:
     - /data/log:/logs
-    - /data/yasls:/config
+    - /data/uatu:/config
     ports:
     - "8099:8080"
     - "8080:8080"

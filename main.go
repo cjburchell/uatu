@@ -5,10 +5,11 @@ import (
 	"log"
 	"sync"
 
+	"github.com/cjburchell/uatu/config"
+	"github.com/cjburchell/uatu/processor"
+	"github.com/cjburchell/uatu/web"
+
 	"github.com/cjburchell/tools-go"
-	"github.com/cjburchell/yasls/config"
-	"github.com/cjburchell/yasls/processor"
-	"github.com/cjburchell/yasls/web"
 )
 
 func main() {

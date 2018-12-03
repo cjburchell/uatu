@@ -7,9 +7,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cjburchell/uatu/web/routes/logger"
+	"github.com/cjburchell/uatu/web/routes/login"
+
 	"github.com/cjburchell/tools-go"
-	"github.com/cjburchell/yasls/web/routes/logger"
-	"github.com/cjburchell/yasls/web/routes/login"
 	"github.com/gorilla/mux"
 )
 

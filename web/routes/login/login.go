@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cjburchell/yasls/web/middelware"
+	"github.com/cjburchell/uatu/web/middelware"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )

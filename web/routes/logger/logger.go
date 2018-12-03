@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/cjburchell/yasls/config"
-	"github.com/cjburchell/yasls/processor"
-	"github.com/cjburchell/yasls/web/middelware"
+	"github.com/cjburchell/uatu/config"
+	"github.com/cjburchell/uatu/processor"
+	"github.com/cjburchell/uatu/web/middelware"
 	"github.com/gorilla/mux"
 )
 
