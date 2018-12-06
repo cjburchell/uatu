@@ -9,10 +9,16 @@
 			"revisionTime": "2017-04-25T17:11:59Z"
 		},
 		{
+			"checksumSHA1": "vYwkoydfjm/O6t+30iI+vXbib6k=",
+			"path": "github.com/bluele/slack",
+			"revision": "b4b4d354a079fbf4bd948faad01b32cecb2ffe03",
+			"revisionTime": "2018-05-28T01:00:58Z"
+		},
+		{
 			"checksumSHA1": "fcP2BozqyThjZhAx86AKyUc8gOI=",
 			"path": "github.com/cjburchell/go-uatu",
-			"revision": "20ee84086d33a68bbbbf7bbe603559fa7d10da2a",
-			"revisionTime": "2018-12-03T03:57:51Z"
+			"revision": "81c28ff45b5f31f4adc6bcc811c1550f4d1c37e6",
+			"revisionTime": "2018-12-06T04:22:56Z"
 		},
 		{
 			"checksumSHA1": "Xm/UfPh2k04K+XSjJzWWCAlIkJ0=",
@@ -37,13 +43,6 @@
 			"path": "github.com/gorilla/mux",
 			"revision": "3d80bc801bb034e17cae38591335b3b1110f1c47",
 			"revisionTime": "2018-10-30T15:25:28Z"
-		},
-		{
-			"checksumSHA1": "W+UDF6H5I7spd9+8iXDbnFGKIo8=",
-			"origin": "github.com/nlopes/slack/vendor/github.com/gorilla/websocket",
-			"path": "github.com/gorilla/websocket",
-			"revision": "38ac5e8c495bc1d4d299c6a14930376f32145eb8",
-			"revisionTime": "2018-11-18T08:39:49Z"
 		},
 		{
 			"checksumSHA1": "uMBd0YieyFBi31zAKIKQk3ZrYNw=",
@@ -74,18 +73,6 @@
 			"path": "github.com/nats-io/nuid",
 			"revision": "3024a71c3cbe30667286099921591e6fcc328230",
 			"revisionTime": "2018-07-12T04:49:59Z"
-		},
-		{
-			"checksumSHA1": "bYySBbBO3hKLmqlxoVBtIqKNA6c=",
-			"path": "github.com/nlopes/slack",
-			"revision": "38ac5e8c495bc1d4d299c6a14930376f32145eb8",
-			"revisionTime": "2018-11-18T08:39:49Z"
-		},
-		{
-			"checksumSHA1": "MH2aECaXQSW8yjgMJSXORiVY+h8=",
-			"path": "github.com/nlopes/slack/slackutilsx",
-			"revision": "38ac5e8c495bc1d4d299c6a14930376f32145eb8",
-			"revisionTime": "2018-11-18T08:39:49Z"
 		},
 		{
 			"checksumSHA1": "cWpu81/hYoLS4dRySWvEUhNdtbA=",

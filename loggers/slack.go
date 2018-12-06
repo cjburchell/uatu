@@ -5,8 +5,8 @@ import (
 
 	"github.com/cjburchell/tools-go/env"
 
+	"github.com/bluele/slack"
 	"github.com/cjburchell/go-uatu"
-	"github.com/nlopes/slack"
 )
 
 func createSlackDestination(data *json.RawMessage) (Destination, error) {
@@ -21,7 +21,7 @@ func createSlackDestination(data *json.RawMessage) (Destination, error) {
 
 type slackDestination struct {
 	Channel string `json:"channel"`
-	client  *slack.Client
+	client  *slack.Slack
 }
 
 func (s slackDestination) PrintMessage(message log.Message) error {
@@ -29,8 +29,7 @@ func (s slackDestination) PrintMessage(message log.Message) error {
 		return nil
 	}
 
-	params := slack.PostMessageParameters{}
-	_, _, err := s.client.PostMessage(s.Channel, message.String(), params)
+	err := s.client.ChatPostMessage(s.Channel, message.String(), nil)
 	return err
 }
 
