@@ -91,11 +91,11 @@ func Load() ([]Logger, error) {
 	}
 
 	var loggers []Logger
-	for index, item := range result {
+	for _, item := range result {
 		logger := Logger{Logger: item}
 		err = logger.UpdateDestination()
 		if err != nil {
-			log.Errorf(err, "Unable to setup logger %s", loggers[index].DestinationType)
+			log.Errorf(err, "Unable to setup logger %s", logger.DestinationType)
 
 		} else {
 			loggers = append(loggers, logger)
