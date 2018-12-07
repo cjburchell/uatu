@@ -90,12 +90,15 @@ func Load() ([]Logger, error) {
 		return nil, err
 	}
 
-	loggers := make([]Logger, len(result))
+	var loggers []Logger
 	for index, item := range result {
-		loggers[index] = Logger{Logger: item}
-		err = loggers[index].UpdateDestination()
+		logger := Logger{Logger: item}
+		err = logger.UpdateDestination()
 		if err != nil {
-			return nil, err
+			log.Errorf(err, "Unable to setup logger %s", loggers[index].DestinationType)
+
+		} else {
+			loggers = append(loggers, logger)
 		}
 	}
 
