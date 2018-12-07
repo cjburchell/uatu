@@ -1,13 +1,13 @@
 package loggers
 
 import (
+	"bytes"
 	"encoding/json"
-
-	"github.com/cjburchell/uatu/settings"
+	"fmt"
+	"net/http"
 
 	"github.com/pkg/errors"
 
-	"github.com/bluele/slack"
 	"github.com/cjburchell/go-uatu"
 )
 
@@ -22,32 +22,39 @@ func createSlackDestination(data *json.RawMessage) (Destination, error) {
 }
 
 type slackDestination struct {
-	Channel string `json:"channel"`
-	client  *slack.Slack
+	Destination string `json:"destination"`
 }
 
 func (s slackDestination) PrintMessage(message log.Message) error {
-	if s.client == nil {
-		return nil
+	return s.sendMessage(message.String())
+}
+
+func (s slackDestination) sendMessage(message string) error {
+	jsonValue, err := json.Marshal(struct {
+		Text string `json:"text"`
+	}{
+		Text: message,
+	})
+
+	if err != nil {
+		return errors.WithStack(err)
 	}
 
-	err := s.client.ChatPostMessage(s.Channel, message.String(), nil)
-	return errors.Wrapf(errors.WithStack(err), "Unable to post slack message to %s", s.Channel)
+	resp, err := http.Post(s.Destination, "application/json", bytes.NewBuffer(jsonValue))
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.WithStack(fmt.Errorf("http request to slack %s error: %d", s.Destination, resp.StatusCode))
+	}
+
+	return errors.Wrapf(errors.WithStack(err), "Unable to post slack message to %s")
 }
 
 func (s *slackDestination) Stop() {
-	if s.client == nil {
-		return
-	}
-
-	s.client.ChatPostMessage(s.Channel, "Stop Logging", nil)
-	s.client = nil
+	s.sendMessage("Stop Logging")
 }
 
 func (s *slackDestination) Setup() error {
-	s.client = slack.New(settings.SlackToken)
-	err := s.client.ChatPostMessage(s.Channel, "Start Logging", nil)
-	return errors.Wrapf(errors.WithStack(err), "Unable to post slack message to %s", s.Channel)
+	return s.sendMessage("Start Logging")
 }
 
 func init() {

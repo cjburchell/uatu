@@ -4,7 +4,6 @@ import "github.com/cjburchell/tools-go/env"
 
 var (
 	ConfigFile     = env.Get("CONFIG_FILE", "/config.json")
-	SlackToken     = env.Get("SLACK_TOKEN", "")
 	UseNats        = env.GetBool("USE_NATS", true)
 	NatsURL        = env.Get("NATS_URL", "tcp://nats:4222")
 	UseRest        = env.GetBool("USE_REST", false)
