@@ -81,12 +81,6 @@
 			"revisionTime": "2018-10-23T23:59:46Z"
 		},
 		{
-			"checksumSHA1": "3JBPxvZn52LORHX9F382xpkt1sA=",
-			"path": "github.com/satori/go.uuid",
-			"revision": "b2ce2384e17bbe0c6d34077efa39dbab3e09123b",
-			"revisionTime": "2018-10-28T12:50:25Z"
-		},
-		{
 			"checksumSHA1": "2LpxYGSf068307b7bhAuVjvzLLc=",
 			"path": "golang.org/x/crypto/ed25519",
 			"revision": "505ab145d0a99da450461ae2c1a9f6cd10d1f447",

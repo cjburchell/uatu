@@ -7,7 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cjburchell/tools-go/env"
+	"github.com/cjburchell/go-uatu"
+
+	"github.com/cjburchell/uatu/settings"
 
 	"github.com/cjburchell/uatu/web/routes/logger"
 	"github.com/cjburchell/uatu/web/routes/login"
@@ -31,9 +33,6 @@ func handelStatus(w http.ResponseWriter, _ *http.Request) {
 
 // StartHTTP Service
 func StartHTTP() {
-	username := env.Get("ADMIN_USER", "admin")
-	password := env.Get("ADMIN_PASSWORD", "admin")
-	port := env.GetInt("PORTAL_PORT", 8080)
 
 	r := mux.NewRouter()
 
@@ -44,18 +43,18 @@ func StartHTTP() {
 
 	// setup routes
 	logger.SetupRoute(r)
-	login.SetupRoutes(r, username, password)
+	login.SetupRoutes(r, settings.PortalUsername, settings.PortalPassword)
 
 	//r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("ui/uatu/dist/uatu"))))
 
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         ":" + strconv.Itoa(port),
+		Addr:         ":" + strconv.Itoa(settings.PortalPort),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
-	fmt.Printf("Hosting UI on port %d\n", port)
+	log.Printf("Hosting UI on port %d", settings.PortalPort)
 	if err := srv.ListenAndServe(); err != nil {
 		fmt.Println(err.Error())
 	}

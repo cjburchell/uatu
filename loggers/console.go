@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/cjburchell/go-uatu"
 )
 
@@ -16,14 +18,15 @@ type consoleDestination struct {
 
 func (consoleDestination) PrintMessage(message log.Message) error {
 	_, err := fmt.Println(message.String())
-	return err
+	return errors.WithStack(err)
 }
 
 func (consoleDestination) Stop() {
 }
 
 func (consoleDestination) Setup() error {
-	return nil
+	_, err := fmt.Println("Start Console Log")
+	return errors.WithStack(err)
 }
 
 func init() {

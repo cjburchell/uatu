@@ -8,7 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cjburchell/tools-go/env"
+	"github.com/pkg/errors"
+
+	"github.com/cjburchell/uatu/settings"
 
 	"github.com/cjburchell/go-uatu"
 	"github.com/cjburchell/uatu/config"
@@ -24,21 +26,18 @@ func Start() {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	useNats := env.GetBool("USE_NATS", true)
-	if useNats {
-		natsURL := env.Get("NATS_URL", "tcp://nats:4222")
-		fmt.Printf("Connecting to nats: %s\n", natsURL)
+	if settings.UseNats {
+
+		log.Printf("Connecting to nats: %s", settings.NatsURL)
 		var err error
-		natsConn, err = setupNats(natsURL)
+		natsConn, err = setupNats(settings.NatsURL)
 		if err != nil {
-			fmt.Printf("unable to connect to nats: %s", err)
+			log.Errorf(err, "unable to connect to nats")
 		}
 	}
 
-	useRest := env.GetBool("USE_REST", false)
-	if useRest {
+	if settings.UseRest {
 		go func() {
-			port := env.GetInt("REST_PORT", 8081)
 
 			r := mux.NewRouter()
 			r.HandleFunc("/log", func(w http.ResponseWriter, r *http.Request) {
@@ -55,21 +54,21 @@ func Start() {
 
 				go func() {
 					if err := handleMessage(logMessage); err != nil {
-						fmt.Printf("Unable to process log: %s\n", err)
+						log.Error(err, "Unable to process log", err)
 					}
 				}()
 			}).Methods("POST")
 
 			srv := &http.Server{
 				Handler:      r,
-				Addr:         ":" + strconv.Itoa(port),
+				Addr:         ":" + strconv.Itoa(settings.RestPort),
 				WriteTimeout: 15 * time.Second,
 				ReadTimeout:  15 * time.Second,
 			}
 
-			fmt.Printf("Handling HTTP log meessges on port %d\n", port)
+			log.Printf("Handling HTTP log messages on port %d", settings.RestPort)
 			if err := srv.ListenAndServe(); err != nil {
-				fmt.Print(err.Error())
+				log.Error(err, "Error processing HTTP")
 			}
 
 			wg.Done()
@@ -88,6 +87,7 @@ func Load() error {
 	}
 
 	if len(processors) == 0 {
+		log.Warn("No loggers available")
 		consoleLogger := loggers.Logger{Logger: config.Logger{DestinationType: "console"}}
 		consoleLogger.SetMaxLevel(log.INFO.Severity)
 		err = consoleLogger.UpdateDestination()
@@ -119,26 +119,26 @@ func setupNats(natsURL string) (*nats.Conn, error) {
 	var err error
 	natsConn, err = nats.Connect(natsURL)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	_, err = natsConn.Subscribe("logs", func(msg *nats.Msg) {
 		data := msg.Data
 		logMessage := log.Message{}
 		if err = json.Unmarshal(data, &logMessage); err != nil {
-			fmt.Printf("Bad Message: %s\n", err)
+			log.Error(err, "Bad Message")
 			return
 		}
 
 		if err = handleMessage(logMessage); err != nil {
-			fmt.Printf("Unable to process log: %s\n", err)
+			log.Error(err, "Unable to process log")
 			return
 		}
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	err = natsConn.Flush()
-	return natsConn, err
+	return natsConn, errors.WithStack(err)
 }

@@ -1,22 +1,59 @@
-[
-  {
-    "levels": [1,2,3,4],
-    "sources": [],
-    "pattern":"",
-    "destination": {
-      "type": "file",
-      "maxAge": 1,
-      "maxBackups": 20,
-      "maxSize": 100,
-      "filename": "/logs/server.log"
+{
+  "loggers": [
+    {
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "sources": [],
+      "pattern": "",
+      "destination_type": "file",
+      "destination": {
+        "maxAge": 1,
+        "maxBackups": 20,
+        "maxSize": 100,
+        "filename": "/logs/server.log"
+      }
+    },
+    {
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "sources": [],
+      "pattern": "",
+      "destination_type": "console"
+    },
+    {
+      "levels": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "sources": [],
+      "pattern": "",
+      "destination_type": "slack",
+      "destination": {
+        "channel": "logs"
+      }
+    },
+    {
+      "levels": [
+        0
+      ],
+      "sources": [],
+      "pattern": "",
+      "destination_type": "slack",
+      "destination": {
+        "channel": "debug"
+      }
     }
-  },
-  {
-    "levels": [1,2,3,4],
-    "sources": [],
-    "pattern":"",
-    "destination": {
-      "type": "console"
-    }
-  }
-]
+  ]
+}

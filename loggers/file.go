@@ -26,8 +26,12 @@ type fileDestination struct {
 }
 
 func (f fileDestination) PrintMessage(message log.Message) error {
+	return f.print(message.String())
+}
+
+func (f fileDestination) print(message string) error {
 	if f.logger != nil {
-		_, err := f.logger.Write([]byte(message.String() + "\n"))
+		_, err := f.logger.Write([]byte(message + "\n"))
 		return err
 	}
 
@@ -40,10 +44,11 @@ func (f *fileDestination) Setup() error {
 		MaxBackups: f.MaxBackups,
 		MaxSize:    f.MaxSize, // megabytes
 		Filename:   f.Filename}
-	return nil
+	return f.print("Started Logging")
 }
 
 func (f *fileDestination) Stop() {
+	f.print("Stopped Logging")
 }
 
 func init() {

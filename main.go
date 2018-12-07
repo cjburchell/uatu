@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"sync"
 
-	"github.com/cjburchell/tools-go/env"
+	"github.com/cjburchell/go-uatu"
+
+	"github.com/cjburchell/uatu/settings"
 
 	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/processor"
@@ -14,17 +14,24 @@ import (
 
 func main() {
 	wg := &sync.WaitGroup{}
+	err := log.Setup(log.Settings{
+		ServiceName:  "logger",
+		UseRest:      false,
+		UseNats:      false,
+		LogToConsole: true,
+		MinLogLevel:  log.DEBUG,
+	})
 
-	configFile := env.Get("CONFIG_FILE", "/config.json")
-
-	err := config.Setup(configFile)
+	log.Printf("Loading config file %s", settings.ConfigFile)
+	err = config.Setup(settings.ConfigFile)
 	if err != nil {
-		log.Print(err.Error())
+		log.Error(err, "Unable to load config file")
 	}
 
+	log.Print("Setting up processors")
 	err = processor.Load()
 	if err != nil {
-		fmt.Printf("unable to load processors: %s", err)
+		log.Error(err, "Unable to load processors")
 		return
 	}
 
