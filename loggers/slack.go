@@ -41,12 +41,15 @@ func (s slackDestination) sendMessage(message string) error {
 	}
 
 	resp, err := http.Post(s.Destination, "application/json", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return errors.WithStack(fmt.Errorf("http request to slack %s error: %d", s.Destination, resp.StatusCode))
 	}
 
-	return errors.Wrapf(errors.WithStack(err), "Unable to post slack message to %s")
+	return nil
 }
 
 func (s *slackDestination) Stop() {
