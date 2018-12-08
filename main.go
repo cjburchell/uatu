@@ -3,13 +3,14 @@ package main
 import (
 	"sync"
 
+	"github.com/cjburchell/uatu/web"
+
 	"github.com/cjburchell/go-uatu"
 
 	"github.com/cjburchell/uatu/settings"
 
 	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/processor"
-	"github.com/cjburchell/uatu/web"
 )
 
 func main() {
@@ -35,16 +36,20 @@ func main() {
 		return
 	}
 
-	wg.Add(2)
+	wg.Add(1)
 
 	go func() {
 		processor.Start()
 		wg.Done()
 	}()
-	go func() {
-		web.StartHTTP()
-		wg.Done()
-	}()
+
+	if settings.PortalEnable {
+		wg.Add(1)
+		go func() {
+			web.StartHTTP()
+			wg.Done()
+		}()
+	}
 
 	wg.Wait()
 }

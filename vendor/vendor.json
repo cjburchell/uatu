@@ -9,12 +9,6 @@
 			"revisionTime": "2017-04-25T17:11:59Z"
 		},
 		{
-			"checksumSHA1": "vYwkoydfjm/O6t+30iI+vXbib6k=",
-			"path": "github.com/bluele/slack",
-			"revision": "b4b4d354a079fbf4bd948faad01b32cecb2ffe03",
-			"revisionTime": "2018-05-28T01:00:58Z"
-		},
-		{
 			"checksumSHA1": "fcP2BozqyThjZhAx86AKyUc8gOI=",
 			"path": "github.com/cjburchell/go-uatu",
 			"revision": "81c28ff45b5f31f4adc6bcc811c1550f4d1c37e6",
