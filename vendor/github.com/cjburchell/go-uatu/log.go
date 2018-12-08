@@ -214,7 +214,7 @@ type Message struct {
 }
 
 func (message Message) String() string {
-	return fmt.Sprintf("[%s] %s %s - %s", message.Level.Text, time.Unix(message.Time, 0).String(), message.ServiceName, message.Text)
+	return fmt.Sprintf("[%s] %s %s - %s", message.Level.Text, time.Unix(message.Time/1000, 0).String(), message.ServiceName, message.Text)
 }
 
 func printLog(text string, level Level) {
