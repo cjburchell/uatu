@@ -40,24 +40,8 @@ func Start() {
 		go func() {
 
 			r := mux.NewRouter()
-			r.HandleFunc("/log", func(w http.ResponseWriter, r *http.Request) {
-
-				decoder := json.NewDecoder(r.Body)
-				var logMessage log.Message
-				if err := decoder.Decode(&logMessage); err != nil {
-					fmt.Println("Unmarshal Failed " + err.Error())
-					w.WriteHeader(http.StatusBadRequest)
-					return
-				}
-
-				w.WriteHeader(http.StatusCreated)
-
-				go func() {
-					if err := handleMessage(logMessage); err != nil {
-						log.Error(err, "Unable to process log", err)
-					}
-				}()
-			}).Methods("POST")
+			r.Use(tokenMiddleware)
+			r.HandleFunc("/log", handelLog).Methods("POST")
 
 			srv := &http.Server{
 				Handler:      r,
@@ -76,6 +60,38 @@ func Start() {
 	}
 
 	wg.Wait()
+}
+
+func tokenMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		auth := request.Header.Get("Authorization")
+		if auth != "APIKEY "+settings.RestToken {
+			response.WriteHeader(http.StatusUnauthorized)
+
+			log.Warnf("Unauthorized %s != %s", auth, settings.RestToken)
+			return
+		}
+
+		next.ServeHTTP(response, request)
+	})
+}
+
+func handelLog(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var logMessage log.Message
+	if err := decoder.Decode(&logMessage); err != nil {
+		fmt.Println("Unmarshal Failed " + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+
+	go func() {
+		if err := handleMessage(logMessage); err != nil {
+			log.Error(err, "Unable to process log", err)
+		}
+	}()
 }
 
 // Load the processors

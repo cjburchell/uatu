@@ -144,6 +144,7 @@ var restClient *http.Client
 type Settings struct {
 	ServiceName  string
 	RestAddress  string
+	RestToken    string
 	NatsURL      string
 	NatsToken    string
 	NatsUser     string
@@ -163,6 +164,7 @@ func CreateDefaultSettings() Settings {
 	settings.UseNats = env.GetBool("LOG_USE_NATS", true)
 	settings.UseRest = env.GetBool("LOG_USE_REST", false)
 	settings.RestAddress = env.Get("LOG_REST_URL", "http://logger:8082/log")
+	settings.RestToken = env.Get("LOG_REST_TOKEN", "token")
 	settings.NatsURL = env.Get("LOG_NATS_URL", "tcp://nats:4222")
 	settings.NatsToken = env.Get("LOG_NATS_TOKEN", "token")
 	settings.NatsUser = env.Get("LOG_NATS_USER", "admin")
@@ -240,9 +242,21 @@ func printLog(text string, level Level) {
 	}
 
 	if restClient != nil {
-		_, err = restClient.Post(settings.RestAddress, "application/json", bytes.NewBuffer(messageBites))
+		req, err := http.NewRequest("POST", settings.RestAddress, bytes.NewBuffer(messageBites))
 		if err != nil {
 			fmt.Printf("Unable to send log to %s(%s): %s", settings.RestAddress, err.Error(), message.String())
+		}
+
+		req.Header.Add("Authorization", fmt.Sprintf("APIKEY %s", settings.RestToken))
+		req.Header.Add("Content-Type", "application/json")
+
+		resp, err := restClient.Do(req)
+		if err != nil {
+			fmt.Printf("Unable to send log to %s(%s): %s", settings.RestAddress, err.Error(), message.String())
+		}
+
+		if resp.StatusCode != http.StatusCreated {
+			fmt.Printf("Unable to send log to %s(%d): %s", settings.RestAddress, resp.StatusCode, message.String())
 		}
 	}
 }
