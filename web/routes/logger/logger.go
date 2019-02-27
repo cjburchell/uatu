@@ -18,7 +18,8 @@ func SetupRoute(r *mux.Router) {
 func handleGetLoggers(writer http.ResponseWriter, _ *http.Request) {
 	loggers, _ := config.GetLoggers()
 	reply, _ := json.Marshal(loggers)
-	writer.WriteHeader(http.StatusOK)
+
 	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusOK)
 	writer.Write(reply)
 }

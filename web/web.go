@@ -23,8 +23,8 @@ func handelStatus(w http.ResponseWriter, _ *http.Request) {
 		fmt.Print(err.Error())
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(reply)
 	if err != nil {
 		fmt.Print(err.Error())
