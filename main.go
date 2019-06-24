@@ -17,11 +17,9 @@ func main() {
 	wg := &sync.WaitGroup{}
 	err := log.Setup(log.Settings{
 		ServiceName:  "logger",
-		UseRest:      false,
-		UseNats:      false,
 		LogToConsole: true,
 		MinLogLevel:  log.DEBUG,
-	})
+	}, []log.Publisher{} )
 
 	log.Printf("Loading config file %s", settings.ConfigFile)
 	err = config.Setup(settings.ConfigFile)

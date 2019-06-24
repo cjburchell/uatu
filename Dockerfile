@@ -1,11 +1,11 @@
-FROM golang:1.11-alpine as serverbuilder
-WORKDIR /go/src/github.com/cjburchell/uatu
+FROM golang:1.12 as serverbuilder
+WORKDIR /uatu
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main
 
 FROM scratch
 
-COPY --from=serverbuilder /go/src/github.com/cjburchell/uatu/main  /server/main
+COPY --from=serverbuilder /uatu/main  /server/main
 
 WORKDIR  /server
 
