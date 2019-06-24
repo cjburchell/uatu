@@ -89,22 +89,6 @@ pipeline {
                 }
             }
         }
-        stage('Deploy') {
-            agent {
-                docker {
-                    image 'fabn/rancher-cli'
-                    args '--env RANCHER_URL=${RANCHER_URL} --env RANCHER_ACCESS_KEY=${RANCHER_ACCESS_KEY} --env RANCHER_SECRET_KEY=${RANCHER_SECRET_KEY}'
-                }
-            }
-            when {
-                branch 'master'
-            }
-            steps {
-                script {
-                    sh """rancher --debug up -d --force-upgrade --pull --confirm-upgrade --stack Redpoint/logger"""
-                }
-            }
-        }
     }
 
     post {
