@@ -1,9 +1,10 @@
 package loggers
 
 import (
+	"log"
 	"regexp"
 
-	"github.com/cjburchell/go-uatu"
+	uatu "github.com/cjburchell/uatu-go"
 	"github.com/cjburchell/uatu/config"
 )
 
@@ -41,7 +42,7 @@ func (l *Logger) SetMaxLevel(maxLevel int) {
 }
 
 // Check checks to see if the message should be logged
-func (l Logger) Check(message log.Message) bool {
+func (l Logger) Check(message uatu.Message) bool {
 
 	if len(l.Levels) != 0 {
 		if !intInSlice(message.Level.Severity, l.Levels) {
@@ -95,7 +96,7 @@ func Load() ([]Logger, error) {
 		logger := Logger{Logger: item}
 		err = logger.UpdateDestination()
 		if err != nil {
-			log.Errorf(err, "Unable to setup logger %s", logger.DestinationType)
+			log.Printf("Unable to setup logger %s, %s", logger.DestinationType, err.Error())
 
 		} else {
 			loggers = append(loggers, logger)

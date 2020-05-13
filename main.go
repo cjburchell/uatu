@@ -1,50 +1,45 @@
 package main
 
 import (
+	"log"
 	"sync"
 
-	"github.com/cjburchell/uatu/web"
-
-	"github.com/cjburchell/go-uatu"
-
-	"github.com/cjburchell/uatu/settings"
-
+	configFile "github.com/cjburchell/settings-go"
+	"github.com/cjburchell/tools-go/env"
 	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/processor"
+	"github.com/cjburchell/uatu/settings"
+	"github.com/cjburchell/uatu/web"
 )
 
 func main() {
 	wg := &sync.WaitGroup{}
-	err := log.Setup(log.Settings{
-		ServiceName:  "logger",
-		LogToConsole: true,
-		MinLogLevel:  log.DEBUG,
-	}, []log.Publisher{} )
+	appSettings := settings.Get(configFile.Get(env.Get("SettingsFile", "")))
 
-	log.Printf("Loading config file %s", settings.ConfigFile)
-	err = config.Setup(settings.ConfigFile)
+	log.Printf("Loading config file %s", appSettings.ConfigFile)
+	err := config.Setup(appSettings.ConfigFile)
 	if err != nil {
-		log.Error(err, "Unable to load config file")
+		log.Printf("Unable to load config file %s", err.Error())
 	}
 
 	log.Print("Setting up processors")
 	err = processor.Load()
 	if err != nil {
-		log.Error(err, "Unable to load processors")
+		log.Printf("Unable to load processors %s", err.Error())
 		return
 	}
 
 	wg.Add(1)
 
 	go func() {
-		processor.Start()
+		processor.Start(appSettings)
 		wg.Done()
 	}()
 
-	if settings.PortalEnable {
+	if appSettings.PortalEnable {
 		wg.Add(1)
 		go func() {
-			web.StartHTTP()
+			web.StartHTTP(appSettings)
 			wg.Done()
 		}()
 	}

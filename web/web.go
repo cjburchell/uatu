@@ -3,11 +3,10 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/cjburchell/go-uatu"
 
 	"github.com/cjburchell/uatu/settings"
 
@@ -32,7 +31,7 @@ func handelStatus(w http.ResponseWriter, _ *http.Request) {
 }
 
 // StartHTTP Service
-func StartHTTP() {
+func StartHTTP(config settings.AppConfig) {
 
 	r := mux.NewRouter()
 
@@ -43,18 +42,18 @@ func StartHTTP() {
 
 	// setup routes
 	logger.SetupRoute(r)
-	login.SetupRoutes(r, settings.PortalUsername, settings.PortalPassword)
+	login.SetupRoutes(r, config.PortalUsername, config.PortalPassword)
 
 	//r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("ui/uatu/dist/uatu"))))
 
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         ":" + strconv.Itoa(settings.PortalPort),
+		Addr:         ":" + strconv.Itoa(config.PortalPort),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Printf("Hosting UI on port %d", settings.PortalPort)
+	log.Printf("Hosting UI on port %d", config.PortalPort)
 	if err := srv.ListenAndServe(); err != nil {
 		fmt.Println(err.Error())
 	}

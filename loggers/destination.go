@@ -3,12 +3,12 @@ package loggers
 import (
 	"encoding/json"
 
-	"github.com/cjburchell/go-uatu"
+	uatu "github.com/cjburchell/uatu-go"
 )
 
 // Destination for a logger
 type Destination interface {
-	PrintMessage(message log.Message) error
+	PrintMessage(message uatu.Message) error
 	Setup() error
 	Stop()
 }

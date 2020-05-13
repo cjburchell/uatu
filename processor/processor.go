@@ -3,56 +3,57 @@ package processor
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
-
-	"github.com/cjburchell/uatu/settings"
-
-	"github.com/cjburchell/go-uatu"
+	uatu "github.com/cjburchell/uatu-go"
 	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/loggers"
+	"github.com/cjburchell/uatu/settings"
 	"github.com/gorilla/mux"
-	"github.com/nats-io/go-nats"
+	"github.com/nats-io/nats.go"
+	"github.com/pkg/errors"
 )
 
 var processors []loggers.Logger
 
 // Start the processor
-func Start() {
+func Start(config settings.AppConfig) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	if settings.UseNats {
+	if config.UseNats {
 
-		log.Printf("Connecting to nats: %s", settings.NatsURL)
+		log.Printf("Connecting to nats: %s", config.NatsURL)
 		var err error
-		natsConn, err = setupNats(settings.NatsURL)
+		natsConn, err = setupNats(config.NatsURL)
 		if err != nil {
-			log.Errorf(err, "unable to connect to nats")
+			log.Printf("unable to connect to nats %s", err.Error())
 		}
 	}
 
-	if settings.UseRest {
+	if config.UseRest {
 		go func() {
 
 			r := mux.NewRouter()
-			r.Use(tokenMiddleware)
+			r.Use(func(handler http.Handler) http.Handler {
+				return tokenMiddleware(handler, config)
+			})
 			r.HandleFunc("/log", handelLog).Methods("POST")
 
 			srv := &http.Server{
 				Handler:      r,
-				Addr:         ":" + strconv.Itoa(settings.RestPort),
+				Addr:         ":" + strconv.Itoa(config.RestPort),
 				WriteTimeout: 15 * time.Second,
 				ReadTimeout:  15 * time.Second,
 			}
 
-			log.Printf("Handling HTTP log messages on port %d", settings.RestPort)
+			log.Printf("Handling HTTP log messages on port %d", config.RestPort)
 			if err := srv.ListenAndServe(); err != nil {
-				log.Error(err, "Error processing HTTP")
+				log.Printf("Error processing HTTP %s", err.Error())
 			}
 
 			wg.Done()
@@ -62,13 +63,13 @@ func Start() {
 	wg.Wait()
 }
 
-func tokenMiddleware(next http.Handler) http.Handler {
+func tokenMiddleware(next http.Handler, config settings.AppConfig) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		auth := request.Header.Get("Authorization")
-		if auth != "APIKEY "+settings.RestToken {
+		if auth != "APIKEY "+config.RestToken {
 			response.WriteHeader(http.StatusUnauthorized)
 
-			log.Warnf("Unauthorized %s != %s", auth, settings.RestToken)
+			log.Printf("Unauthorized %s != %s", auth, config.RestToken)
 			return
 		}
 
@@ -78,7 +79,7 @@ func tokenMiddleware(next http.Handler) http.Handler {
 
 func handelLog(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var logMessage log.Message
+	var logMessage uatu.Message
 	if err := decoder.Decode(&logMessage); err != nil {
 		fmt.Println("Unmarshal Failed " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -89,7 +90,7 @@ func handelLog(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		if err := handleMessage(logMessage); err != nil {
-			log.Error(err, "Unable to process log", err)
+			log.Printf("Unable to process log %s", err.Error())
 		}
 	}()
 }
@@ -103,9 +104,9 @@ func Load() error {
 	}
 
 	if len(processors) == 0 {
-		log.Warn("No loggers available")
+		log.Printf("No loggers available")
 		consoleLogger := loggers.Logger{Logger: config.Logger{DestinationType: "console"}}
-		consoleLogger.SetMaxLevel(log.INFO.Severity)
+		consoleLogger.SetMaxLevel(uatu.INFO.Severity)
 		err = consoleLogger.UpdateDestination()
 		if err != nil {
 			return err
@@ -119,7 +120,7 @@ func Load() error {
 
 var natsConn *nats.Conn
 
-func handleMessage(logMessage log.Message) error {
+func handleMessage(logMessage uatu.Message) error {
 	for _, l := range processors {
 		if l.Check(logMessage) {
 			if err := l.Destination.PrintMessage(logMessage); err != nil {
@@ -140,14 +141,14 @@ func setupNats(natsURL string) (*nats.Conn, error) {
 
 	_, err = natsConn.Subscribe("logs", func(msg *nats.Msg) {
 		data := msg.Data
-		logMessage := log.Message{}
+		logMessage := uatu.Message{}
 		if err = json.Unmarshal(data, &logMessage); err != nil {
-			log.Error(err, "Bad Message")
+			log.Printf("Bad Message %s", err.Error())
 			return
 		}
 
 		if err = handleMessage(logMessage); err != nil {
-			log.Error(err, "Unable to process log")
+			log.Printf("Unable to process log %s", err.Error())
 			return
 		}
 	})

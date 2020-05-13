@@ -21,5 +21,5 @@ func handleGetLoggers(writer http.ResponseWriter, _ *http.Request) {
 
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusOK)
-	writer.Write(reply)
+	_, _ = writer.Write(reply)
 }

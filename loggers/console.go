@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cjburchell/go-uatu"
+	uatu "github.com/cjburchell/uatu-go"
 )
 
 func createConsoleDestination(_ *json.RawMessage) (Destination, error) {
@@ -16,7 +16,7 @@ func createConsoleDestination(_ *json.RawMessage) (Destination, error) {
 type consoleDestination struct {
 }
 
-func (consoleDestination) PrintMessage(message log.Message) error {
+func (consoleDestination) PrintMessage(message uatu.Message) error {
 	_, err := fmt.Println(message.String())
 	return errors.WithStack(err)
 }

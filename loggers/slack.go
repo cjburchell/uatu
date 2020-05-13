@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cjburchell/go-uatu"
+	uatu "github.com/cjburchell/uatu-go"
 )
 
 func createSlackDestination(data *json.RawMessage) (Destination, error) {
@@ -25,7 +25,7 @@ type slackDestination struct {
 	Destination string `json:"destination"`
 }
 
-func (s slackDestination) PrintMessage(message log.Message) error {
+func (s slackDestination) PrintMessage(message uatu.Message) error {
 	return s.sendMessage(message.String())
 }
 
@@ -53,7 +53,7 @@ func (s slackDestination) sendMessage(message string) error {
 }
 
 func (s *slackDestination) Stop() {
-	s.sendMessage("Stop Logging")
+	_ = s.sendMessage("Stop Logging")
 }
 
 func (s *slackDestination) Setup() error {

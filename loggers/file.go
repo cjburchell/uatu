@@ -3,7 +3,7 @@ package loggers
 import (
 	"encoding/json"
 
-	"github.com/cjburchell/go-uatu"
+	uatu "github.com/cjburchell/uatu-go"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -25,7 +25,7 @@ type fileDestination struct {
 	logger     *lumberjack.Logger
 }
 
-func (f fileDestination) PrintMessage(message log.Message) error {
+func (f fileDestination) PrintMessage(message uatu.Message) error {
 	return f.print(message.String())
 }
 
@@ -48,7 +48,7 @@ func (f *fileDestination) Setup() error {
 }
 
 func (f *fileDestination) Stop() {
-	f.print("Stopped Logging")
+	_ = f.print("Stopped Logging")
 }
 
 func init() {
