@@ -24,21 +24,13 @@ type config struct {
 }
 
 // GetLoggers configuration
-func GetLoggers() ([]Logger, error) {
-	return load()
+func GetLoggers(file string) ([]Logger, error) {
+	return load(file)
 }
 
-// Setup the configuration
-func Setup(file string) error {
-	configFileName = file
-	return nil
-}
-
-var configFileName string
-
-func load() ([]Logger, error) {
+func load(file string) ([]Logger, error) {
 	var err error
-	if _, err = os.Stat(configFileName); os.IsNotExist(err) {
+	if _, err = os.Stat(file); os.IsNotExist(err) {
 		return nil, nil
 	}
 
@@ -46,7 +38,7 @@ func load() ([]Logger, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	fileData, err := ioutil.ReadFile(configFileName)
+	fileData, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

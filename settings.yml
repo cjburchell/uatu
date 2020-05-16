@@ -1,0 +1,13 @@
+ConfigFile: config.json
+PubSub:
+  Enabled: true
+  Provider: nats
+  Nats:
+    Url: tcp://nats:4222
+    #Token: token
+    #User: admin
+    #Password: password
+Rest:
+  Enabled: false
+  Port: 8081
+  Token: token

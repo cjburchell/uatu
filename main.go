@@ -6,43 +6,28 @@ import (
 
 	configFile "github.com/cjburchell/settings-go"
 	"github.com/cjburchell/tools-go/env"
-	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/processor"
 	"github.com/cjburchell/uatu/settings"
-	"github.com/cjburchell/uatu/web"
 )
 
 func main() {
 	wg := &sync.WaitGroup{}
-	appSettings := settings.Get(configFile.Get(env.Get("SettingsFile", "")))
+	appSettings := settings.Get(configFile.Get(env.Get("SettingsFile", "settings.yml")))
 
 	log.Printf("Loading config file %s", appSettings.ConfigFile)
-	err := config.Setup(appSettings.ConfigFile)
-	if err != nil {
-		log.Printf("Unable to load config file %s", err.Error())
-	}
-
 	log.Print("Setting up processors")
-	err = processor.Load()
+	p, err := processor.Load(appSettings.ConfigFile)
 	if err != nil {
 		log.Printf("Unable to load processors %s", err.Error())
 		return
 	}
+	defer p.Stop()
 
 	wg.Add(1)
-
 	go func() {
-		processor.Start(appSettings)
+		p.Start(appSettings)
 		wg.Done()
 	}()
-
-	if appSettings.PortalEnable {
-		wg.Add(1)
-		go func() {
-			web.StartHTTP(appSettings)
-			wg.Done()
-		}()
-	}
 
 	wg.Wait()
 }

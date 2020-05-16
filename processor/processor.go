@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,29 +10,48 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cjburchell/pubsub"
+
 	uatu "github.com/cjburchell/uatu-go"
 	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/loggers"
 	"github.com/cjburchell/uatu/settings"
 	"github.com/gorilla/mux"
-	"github.com/nats-io/nats.go"
 	"github.com/pkg/errors"
 )
 
-var processors []loggers.Logger
+// IProcessor Interface
+type IProcessor interface {
+	Start(config settings.AppConfig)
+	Stop()
+}
+
+type processor struct {
+	processors   []loggers.Logger
+	pubSub       pubsub.IPubSub
+	subscription pubsub.ISubscription
+}
+
+func (p *processor) Stop() {
+	if p.subscription != nil {
+		err := p.subscription.Close()
+		if err != nil {
+			log.Printf("Error stopping subscription %s", err.Error())
+		}
+	}
+
+}
 
 // Start the processor
-func Start(config settings.AppConfig) {
+func (p *processor) Start(config settings.AppConfig) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	if config.UseNats {
-
-		log.Printf("Connecting to nats: %s", config.NatsURL)
+	if config.UsePubSub {
 		var err error
-		natsConn, err = setupNats(config.NatsURL)
+		p.pubSub, p.subscription, err = p.setupPubSub(config.PubSub)
 		if err != nil {
-			log.Printf("unable to connect to nats %s", err.Error())
+			log.Printf("unable to connect to pub sub %s", err.Error())
 		}
 	}
 
@@ -42,7 +62,7 @@ func Start(config settings.AppConfig) {
 			r.Use(func(handler http.Handler) http.Handler {
 				return tokenMiddleware(handler, config)
 			})
-			r.HandleFunc("/log", handelLog).Methods("POST")
+			r.HandleFunc("/log", p.handelLog).Methods("POST")
 
 			srv := &http.Server{
 				Handler:      r,
@@ -77,7 +97,7 @@ func tokenMiddleware(next http.Handler, config settings.AppConfig) http.Handler 
 	})
 }
 
-func handelLog(w http.ResponseWriter, r *http.Request) {
+func (p processor) handelLog(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var logMessage uatu.Message
 	if err := decoder.Decode(&logMessage); err != nil {
@@ -89,18 +109,18 @@ func handelLog(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	go func() {
-		if err := handleMessage(logMessage); err != nil {
+		if err := p.handleMessage(logMessage); err != nil {
 			log.Printf("Unable to process log %s", err.Error())
 		}
 	}()
 }
 
 // Load the processors
-func Load() error {
+func Load(file string) (IProcessor, error) {
 	var err error
-	processors, err = loggers.Load()
+	processors, err := loggers.Load(file)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(processors) == 0 {
@@ -109,19 +129,19 @@ func Load() error {
 		consoleLogger.SetMaxLevel(uatu.INFO.Severity)
 		err = consoleLogger.UpdateDestination()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		processors = append(processors, consoleLogger)
 	}
 
-	return nil
+	return &processor{
+		processors: processors,
+	}, nil
 }
 
-var natsConn *nats.Conn
-
-func handleMessage(logMessage uatu.Message) error {
-	for _, l := range processors {
+func (p processor) handleMessage(logMessage uatu.Message) error {
+	for _, l := range p.processors {
 		if l.Check(logMessage) {
 			if err := l.Destination.PrintMessage(logMessage); err != nil {
 				return err
@@ -132,30 +152,28 @@ func handleMessage(logMessage uatu.Message) error {
 	return nil
 }
 
-func setupNats(natsURL string) (*nats.Conn, error) {
-	var err error
-	natsConn, err = nats.Connect(natsURL)
+func (p processor) setupPubSub(settings pubsub.Settings) (pubsub.IPubSub, pubsub.ISubscription, error) {
+
+	ps, err := pubsub.Create(context.Background(), settings)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, nil, errors.WithStack(err)
 	}
 
-	_, err = natsConn.Subscribe("logs", func(msg *nats.Msg) {
-		data := msg.Data
+	sub, err := ps.Subscribe(context.Background(), "logs", func(data []byte) {
 		logMessage := uatu.Message{}
 		if err = json.Unmarshal(data, &logMessage); err != nil {
 			log.Printf("Bad Message %s", err.Error())
 			return
 		}
 
-		if err = handleMessage(logMessage); err != nil {
+		if err = p.handleMessage(logMessage); err != nil {
 			log.Printf("Unable to process log %s", err.Error())
 			return
 		}
 	})
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, nil, errors.WithStack(err)
 	}
 
-	err = natsConn.Flush()
-	return natsConn, errors.WithStack(err)
+	return ps, sub, errors.WithStack(err)
 }

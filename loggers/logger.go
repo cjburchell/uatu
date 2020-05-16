@@ -85,8 +85,8 @@ func (l *Logger) UpdateDestination() error {
 }
 
 // Load the log file
-func Load() ([]Logger, error) {
-	result, err := config.GetLoggers()
+func Load(file string) ([]Logger, error) {
+	result, err := config.GetLoggers(file)
 	if err != nil {
 		return nil, err
 	}
