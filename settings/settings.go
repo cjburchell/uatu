@@ -9,7 +9,6 @@ import (
 //Get the application configuration
 func Get(config settings.ISettings) AppConfig {
 	return AppConfig{
-		ConfigFile: config.Get("", "config.json"),
 		UsePubSub:  config.GetSection("PubSub").GetBool("Enabled", true),
 		PubSub:     pubSubSettings.Get(config.GetSection("PubSub")),
 		UseRest:    config.GetSection("Rest").GetBool("Enabled", false),
@@ -20,7 +19,6 @@ func Get(config settings.ISettings) AppConfig {
 
 // AppConfig object
 type AppConfig struct {
-	ConfigFile string
 	UsePubSub  bool
 	PubSub     pubsub.Settings
 	UseRest    bool

@@ -2,9 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"os"
-
+	"github.com/cjburchell/settings-go"
 	"github.com/pkg/errors"
 )
 
@@ -19,31 +17,13 @@ type Logger struct {
 	DestinationConfig *json.RawMessage `json:"destination"`
 }
 
-type config struct {
-	Loggers []Logger `json:"loggers"`
-}
-
 // GetLoggers configuration
-func GetLoggers(file string) ([]Logger, error) {
-	return load(file)
+func GetLoggers(settings settings.ISettings) ([]Logger, error) {
+	return load(settings)
 }
 
-func load(file string) ([]Logger, error) {
-	var err error
-	if _, err = os.Stat(file); os.IsNotExist(err) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	fileData, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	var configData config
-	err = json.Unmarshal(fileData, &configData)
-	return configData.Loggers, errors.WithStack(err)
+func load(settings settings.ISettings) ([]Logger, error) {
+	var loggers []Logger
+	err := settings.GetObject("loggers", &loggers)
+	return loggers, errors.WithStack(err)
 }

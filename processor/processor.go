@@ -16,6 +16,7 @@ import (
 	"github.com/cjburchell/uatu/config"
 	"github.com/cjburchell/uatu/loggers"
 	"github.com/cjburchell/uatu/settings"
+	appSettings "github.com/cjburchell/settings-go"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 )
@@ -116,9 +117,9 @@ func (p processor) handelLog(w http.ResponseWriter, r *http.Request) {
 }
 
 // Load the processors
-func Load(file string) (IProcessor, error) {
+func Load(settings appSettings.ISettings) (IProcessor, error) {
 	var err error
-	processors, err := loggers.Load(file)
+	processors, err := loggers.Load(settings)
 	if err != nil {
 		return nil, err
 	}

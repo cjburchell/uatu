@@ -1,6 +1,7 @@
 package loggers
 
 import (
+	"github.com/cjburchell/settings-go"
 	"log"
 	"regexp"
 
@@ -85,8 +86,8 @@ func (l *Logger) UpdateDestination() error {
 }
 
 // Load the log file
-func Load(file string) ([]Logger, error) {
-	result, err := config.GetLoggers(file)
+func Load(settings settings.ISettings) ([]Logger, error) {
+	result, err := config.GetLoggers(settings)
 	if err != nil {
 		return nil, err
 	}

@@ -12,11 +12,12 @@ import (
 
 func main() {
 	wg := &sync.WaitGroup{}
-	appSettings := settings.Get(configFile.Get(env.Get("SettingsFile", "settings.yml")))
+	config := configFile.Get(env.Get("SettingsFile", "config.json"))
+	appSettings := settings.Get(config)
 
 	log.Printf("Loading config file %s", appSettings.ConfigFile)
 	log.Print("Setting up processors")
-	p, err := processor.Load(appSettings.ConfigFile)
+	p, err := processor.Load(config)
 	if err != nil {
 		log.Printf("Unable to load processors %s", err.Error())
 		return
