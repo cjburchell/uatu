@@ -15,7 +15,6 @@ func main() {
 	config := configFile.Get(env.Get("SettingsFile", "config.json"))
 	appSettings := settings.Get(config)
 
-	log.Printf("Loading config file %s", appSettings.ConfigFile)
 	log.Print("Setting up processors")
 	p, err := processor.Load(config)
 	if err != nil {
