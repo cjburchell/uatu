@@ -4,6 +4,9 @@ pipeline {
         DOCKER_IMAGE = "cjburchell/uatu"
         DOCKER_TAG = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
         PROJECT_PATH = "/go/src/github.com/cjburchell/uatu"
+        VERSION = "v1.1.${env.BUILD_NUMBER}"
+        PRE_RELEASE_VERSION = "{env.VERSION}-${env.BRANCH_NAME}"
+        repository = "github.com/cjburchell/uatu.git"
     }
 
     stages {
@@ -56,30 +59,54 @@ pipeline {
         }
 
         stage('Build') {
-                    steps {
-                        script {
-                            def image = docker.build("${DOCKER_IMAGE}")
-                            image.tag("${DOCKER_TAG}")
-                            if( env.BRANCH_NAME == "master") {
-                                image.tag("latest")
-                            }
-                        }
+            steps {
+                script {
+                    def image = docker.build("${DOCKER_IMAGE}")
+                    image.tag("${DOCKER_TAG}")
+                    if( env.BRANCH_NAME == "master") {
+                        image.tag("latest")
                     }
                 }
+            }
+        }
 
-                stage ('Push') {
-                    steps {
-                        script {
-                            docker.withRegistry('', 'dockerhub') {
-                               def image = docker.image("${DOCKER_IMAGE}")
-                               image.push("${DOCKER_TAG}")
-                               if( env.BRANCH_NAME == "master") {
-                                    image.push("latest")
-                               }
-                            }
-                        }
+        stage ('Push') {
+            steps {
+                script {
+                    docker.withRegistry('', 'dockerhub') {
+                    def image = docker.image("${DOCKER_IMAGE}")
+                    image.push("${DOCKER_TAG}")
+                    if( env.BRANCH_NAME == "master") {
+                        image.push("latest")
                     }
                 }
+            }
+        }
+
+        stage('Tag Pre Release') {
+            when { expression { params.PreRelease } }
+            steps {
+                 script {
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'github', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
+                        sh """git tag ${PRE_RELEASE_VERSION}"""
+                        sh """git push https://${env.GIT_USERNAME}:${env.GIT_PASSWORD}@${env.repository} ${PRE_RELEASE_VERSION}"""
+                    }
+
+                }
+            }
+        }
+        stage('Tag Release') {
+            when { expression { env.BRANCH_NAME == "master" } }
+            steps {
+                 script {
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'github', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD']]) {
+                        sh """git tag ${VERSION}"""
+                        sh """git push https://${env.GIT_USERNAME}:${env.GIT_PASSWORD}@${env.repository} ${VERSION}"""
+                    }
+
+                }
+            }
+        }
     }
 
     post {
@@ -100,5 +127,4 @@ pipeline {
             }
         }
     }
-
 }
